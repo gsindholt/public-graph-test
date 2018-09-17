@@ -15,3 +15,20 @@ Janusgraph must already have been configured. I use DynamoDB as my backend and I
 :remote console
 graphs.TestGraph.load(graph)
 ```
+## Execution via console
+My test case queries 4 specific node. The IDs of those nodes are obtained by this query:
+```
+ids = g.V().hasLabel('vertexType1').has('desc', within('fb735e78-4f5e-4ea2-977a-4bad75afa547','a3c53472-86a6-4ebe-a740-dccd7a07fb35','d09714ec-62a9-42e2-94b5-9aff627aa806','93b6f9e0-edc2-4343-bc49-42a42e2e620c')).id().fold()
+```
+
+The following query is then executed at least twice to ensure that the script is cached
+```
+g.V(ids).out().in().dedup().count().profile()
+```
+
+## Execution via HTTP
+cURL is used to query via HTTP. I execute the query from the server to avoid network delays and it is executed a couple of times to make sure the script is cached:
+
+```
+curl -XPOST -Hcontent-type:application/json -d '{"gremlin":"g.V(ids).out().in().dedup().count().profile()", "bindings":{"ids":[insert obtained ids here]}}' http://10.0.1.100:8182
+```
